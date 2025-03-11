@@ -11,6 +11,7 @@ import (
 	"tgProdLoader/internal/models"
 	"tgProdLoader/internal/producer/telegram"
 
+	"github.com/SevereCloud/vksdk/api/params"
 	"github.com/SevereCloud/vksdk/v3/api"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
@@ -55,18 +56,14 @@ func main() {
 
 func getClientName(vk *api.VK) string {
 
-	users, err := vk.UsersGet(api.Params{
-		"user_id": 1,
-	})
+	p := params.NewAccountGetInfoBuilder()
+
+	info, err := vk.AccountGetProfileInfo(api.Params(p.Params))
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if len(users) < 1 {
-		return ""
-	}
-
-	return users[0].FirstName + " " + users[0].LastName
+	return info.FirstName + " " + info.LastName
 }
 
 // fix it
