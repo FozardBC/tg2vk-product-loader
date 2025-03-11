@@ -12,7 +12,7 @@ type Config struct {
 	Env           string `yaml:"env" env-default:"local" env-required:"true"`
 	TelegramToken string `yaml:"telegram_token" env-required:"true"`
 	VkToken       string `yaml:"vk_token" env-required:"true"`
-	//VkGroupId     int    `yaml:"VK_GROUP_ID" env-required:"true"`
+	VkGroupId     int    `yaml:"VK_GROUP_ID" env-required:"true"`
 }
 
 func MustLoad() *Config {

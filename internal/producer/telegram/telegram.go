@@ -92,6 +92,10 @@ func (t *tgProducer) HandleMessages(log *slog.Logger, productChan chan models.Pr
 
 			log.Debug("Starting loading", "User", u.Message.From.UserName)
 			t.loadProducts(productChan, updates)
+
+			msg := tgbotapi.NewMessage(u.Message.Chat.ID, "")
+			setKeyboard(&msg, startKeyboard, "Загрузка товаров завершена. ")
+			t.bot.Send(msg)
 		default:
 			setKeyboard(&msg, startKeyboard, "Неизвестная команда")
 

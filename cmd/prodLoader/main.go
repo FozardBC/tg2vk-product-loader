@@ -41,13 +41,13 @@ func main() {
 	var chanProds chan models.Product = make(chan models.Product)
 
 	tgProducer := telegram.New(log, tgBot)
-	vkConsumer := vk.New(vkClient)
+	vkConsumer := vk.New(log, vkClient, cfg.VkGroupId)
 
 	wg := sync.WaitGroup{}
 	wg.Add(10)
 
 	go tgProducer.HandleMessages(log, chanProds)
-	go vkConsumer.Load(&wg, log, chanProds)
+	go vkConsumer.Load(log, chanProds)
 
 	wg.Wait()
 
