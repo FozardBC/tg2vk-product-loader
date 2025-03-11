@@ -126,7 +126,7 @@ func (t *tgProducer) setCategory(updates tgbotapi.UpdatesChannel) bool {
 			setKeyboard(&msg, startKeyboard, "Главное меню:")
 			t.bot.Send(msg)
 
-			return false
+			return true
 
 		}
 

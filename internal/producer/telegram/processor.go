@@ -31,7 +31,7 @@ OUT:
 			msg := tgbotapi.NewMessage(u.Message.Chat.ID, "")
 			setKeyboard(&msg, startKeyboard, "Главное меню:")
 			t.bot.Send(msg)
-			continue
+			return
 
 		case stopLoad:
 			msg := tgbotapi.NewMessage(u.Message.Chat.ID, "")
