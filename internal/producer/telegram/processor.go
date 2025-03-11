@@ -32,20 +32,12 @@ func (t *tgProducer) loadProducts(prodChan chan models.Product, updates tgbotapi
 			t.log.Debug("User stoped loading", "User", u.Message.From.UserName)
 			return
 		case category:
-			t.log.Debug("User used cmd category", "User", u.Message.From.UserName)
-
 			msg := tgbotapi.NewMessage(u.Message.Chat.ID, "")
 
-			setKeyboard(&msg, chooseKeyboard, "Выберите категорию:")
-
-			_, err := t.bot.Send(msg)
-			if err != nil {
-				t.log.Info("can't send message with startKeyboard:", "error", err.Error())
-			}
-
-			t.setCategory(updates)
+			t.changeCategory(*u.Message, updates)
 
 			setKeyboard(&msg, activeLoadingKeyboard, "Вы сменили категорию: "+t.category+"Можете продолжить загрузку товаров")
+			t.bot.Send(msg)
 
 			continue
 

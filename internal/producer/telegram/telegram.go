@@ -57,24 +57,10 @@ func (t *tgProducer) HandleMessages(log *slog.Logger, productChan chan models.Pr
 			continue
 
 		case category:
-			log.Debug("User used cmd category", "User", u.Message.From.UserName)
-
-			setKeyboard(&msg, chooseKeyboard, "Выберите категорию:")
-
-			_, err := t.bot.Send(msg)
-			if err != nil {
-				log.Info("can't send message with startKeyboard:", "error", err.Error())
-			}
-
-			t.setCategory(updates)
+			t.changeCategory(*u.Message, updates)
 
 			if t.category == "" || t.category == " " {
-				setKeyboard(&msg, chooseKeyboard, "Выберите категорию:")
-
-				_, err := t.bot.Send(msg)
-				if err != nil {
-					log.Info("can't send message with startKeyboard:", "error", err.Error())
-				}
+				t.changeCategory(*u.Message, updates)
 			}
 			fallthrough
 		case startLoad:
@@ -84,23 +70,11 @@ func (t *tgProducer) HandleMessages(log *slog.Logger, productChan chan models.Pr
 			if t.category == "" || t.category == " " {
 				msg.Text = "Категория не выбрана!"
 
-				_, err := t.bot.Send(msg)
-				if err != nil {
-					log.Info("can't send message with message:", "error", err.Error())
-				}
-
-				setKeyboard(&msg, chooseKeyboard, "Выберите категорию:")
-
-				_, err = t.bot.Send(msg)
-				if err != nil {
-					log.Info("can't send message with startKeyboard:", "error", err.Error())
-				}
-
-				t.setCategory(updates)
+				t.changeCategory(*u.Message, updates)
 
 				setKeyboard(&msg, startLoading, "Вы выбрали категорию: "+t.category+". Начать загрузку?")
 
-				_, err = t.bot.Send(msg)
+				_, err := t.bot.Send(msg)
 				if err != nil {
 					log.Info("can't send message with message:", "error", err.Error())
 				}
@@ -133,7 +107,7 @@ func (t *tgProducer) HandleMessages(log *slog.Logger, productChan chan models.Pr
 	return nil
 }
 
-func (t *tgProducer) setCategory(updates tgbotapi.UpdatesChannel) {
+func (t *tgProducer) setCategory(updates tgbotapi.UpdatesChannel) bool {
 
 	t.log.Debug("User used cmd setCategory")
 
@@ -142,24 +116,45 @@ func (t *tgProducer) setCategory(updates tgbotapi.UpdatesChannel) {
 			continue
 		}
 
-		switch u.Message.Text {
-		case reload:
-			msg := tgbotapi.NewMessage(u.Message.From.ID, "Категория не из списка! Выберите категорию из списка!")
+		if u.Message.Text == reload {
+			msg := tgbotapi.NewMessage(u.Message.From.ID, "Перезагрузка...")
+			t.bot.Send(msg)
 			setKeyboard(&msg, startKeyboard, "Главное меню:")
 			t.bot.Send(msg)
 
-			return
+			return false
+
 		}
 
-		if !isCategory(u.Message.Text) {
+		if isCategory(u.Message.Text) {
+			t.category = u.Message.Text
+			t.log.Debug("User setted category", "User", u.Message.From.UserName, "category", t.category)
+			break
+		} else {
 			msg := tgbotapi.NewMessage(u.Message.From.ID, "Категория не из списка! Выберите категорию из списка!")
 			t.bot.Send(msg)
+			continue
 		}
 
-		t.category = u.Message.Text
-		t.log.Debug("User setted category", "User", u.Message.From.UserName, "category", t.category)
-		break
+	}
+	return true
+}
 
+func (t *tgProducer) changeCategory(m tgbotapi.Message, u tgbotapi.UpdatesChannel) {
+	t.log.Debug("User used cmd category", "User", m.From.UserName)
+
+	msg := tgbotapi.NewMessage(m.Chat.ID, "")
+
+	setKeyboard(&msg, chooseKeyboard, "Выберите категорию:")
+
+	_, err := t.bot.Send(msg)
+	if err != nil {
+		t.log.Info("can't send message with startKeyboard:", "error", err.Error())
+	}
+
+	if !t.setCategory(u) {
+		t.log.Debug("category isn't chosen. Try agian")
+		t.setCategory(u)
 	}
 }
 

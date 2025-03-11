@@ -21,6 +21,7 @@ func New(c *api.VK) *vkConsumer {
 func (v *vkConsumer) Load(wg *sync.WaitGroup, log *slog.Logger, prodChan chan models.Product) {
 	for p := range prodChan {
 		log.Debug("product", "name", p.Name)
+		//загрузка товара в вк
 	}
 	wg.Done()
 }
