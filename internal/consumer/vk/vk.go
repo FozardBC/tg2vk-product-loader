@@ -31,37 +31,39 @@ func (vk *vkConsumer) Load(log *slog.Logger, prodChan chan models.Product) {
 
 	for p := range prodChan {
 
-		vk.log.Debug("product", "name", p.Name)
+		go func() {
 
-		mainPhoto, err := vk.loadMainPhoto(p.MainPictureURL)
-		if err != nil {
-			vk.log.Error("Error:", "can't load mainPhoto:", err.Error())
-		}
-		vk.log.Debug("loaded mainPhoto to VK", "name", p.Name)
+			vk.log.Debug("product", "name", p.Name)
 
-		idUploadedPhotos, err := vk.loadPhotosFromUrls(p.PicturesURL)
-		if err != nil {
-			vk.log.Error("Error:", "can't load photo:", err.Error())
-		}
-		vk.log.Debug("loaded Photos to VK", "name", p.Name)
+			mainPhoto, err := vk.loadMainPhoto(p.MainPictureURL)
+			if err != nil {
+				vk.log.Error("Error:", "can't load mainPhoto:", err.Error())
+			}
+			vk.log.Debug("loaded mainPhoto to VK", "name", p.Name)
 
-		pars := params.NewMarketAddBuilder()
-		vk.log.Debug("loaded mainPhoto to VK", "name", p.Name)
+			idUploadedPhotos, err := vk.loadPhotosFromUrls(p.PicturesURL)
+			if err != nil {
+				vk.log.Error("Error:", "can't load photo:", err.Error())
+			}
+			vk.log.Debug("loaded Photos to VK", "name", p.Name)
 
-		pars.OwnerID(-vk.GroupID)
-		pars.Name(p.Name)
-		pars.MainPhotoID(mainPhoto[0].ID)
-		pars.PhotoIDs(idUploadedPhotos)
-		pars.Description(p.Description)
-		pars.Price(float64(p.Price))
-		pars.CategoryID(p.CategoryID)
+			pars := params.NewMarketAddBuilder()
+			vk.log.Debug("loaded mainPhoto to VK", "name", p.Name)
 
-		response, err := vk.Client.MarketAdd(api.Params(pars.Params))
-		if err != nil {
-			vk.log.Error("can't load Product to VK", "err", err.Error())
-		}
-		log.Info("Product loaded to VK", "name", p.Name, "productID", response.MarketItemID)
+			pars.OwnerID(-vk.GroupID)
+			pars.Name(p.Name)
+			pars.MainPhotoID(mainPhoto[0].ID)
+			pars.PhotoIDs(idUploadedPhotos)
+			pars.Description(p.Description)
+			pars.Price(float64(p.Price))
+			pars.CategoryID(p.CategoryID)
 
+			response, err := vk.Client.MarketAdd(api.Params(pars.Params))
+			if err != nil {
+				vk.log.Error("can't load Product to VK", "err", err.Error())
+			}
+			log.Info("Product loaded to VK", "name", p.Name, "productID", response.MarketItemID)
+		}()
 		continue
 
 	}

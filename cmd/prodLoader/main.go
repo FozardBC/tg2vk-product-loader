@@ -26,29 +26,29 @@ func main() {
 
 	cfg := config.MustLoad()
 
-	log := setupLogger(cfg.Env)
+	logger := setupLogger(cfg.Env)
 
 	tgBot, err := tgbotapi.NewBotAPI(cfg.TelegramToken)
 	if err != nil {
-		log.Error("can't start telegram bot:", "error", err.Error())
+		logger.Error("can't start telegram bot:", "error", err.Error())
 		os.Exit(1)
 	}
-	log.Info("Autharizated telegram bot:", "bot", tgBot.Self.FirstName)
+	logger.Info("Autharizated telegram bot:", "bot", tgBot.Self.FirstName)
 
 	vkClient := api.NewVK(cfg.VkToken)
 
-	log.Info("Autharizated vk:", "Name:", getClientName(vkClient))
+	logger.Info("Autharizated vk:", "Name:", getClientName(vkClient))
 
 	var chanProds chan models.Product = make(chan models.Product)
 
-	tgProducer := telegram.New(log, tgBot)
-	vkConsumer := vk.New(log, vkClient, cfg.VkGroupId)
+	tgProducer := telegram.New(logger, tgBot)
+	vkConsumer := vk.New(logger, vkClient, cfg.VkGroupId)
 
 	wg := sync.WaitGroup{}
 	wg.Add(10)
 
-	go tgProducer.HandleMessages(log, chanProds)
-	go vkConsumer.Load(log, chanProds)
+	go tgProducer.HandleMessages(logger, chanProds)
+	go vkConsumer.Load(logger, chanProds)
 
 	wg.Wait()
 
